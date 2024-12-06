@@ -1,19 +1,6 @@
 const std = @import("std");
 
-var to_do_list: [][]u8 = undefined;
-
-pub fn conditionExitPrgram(param: []u8) bool {
-    return param.len == 1 and param[0] == 'x';
-}
-pub fn conditionAddTodoPrgram(param: []u8) bool {
-    return param.len == 1 and param[0] == '1';
-}
-
-pub fn conditionGetListTodoPrgram(param: []u8) bool {
-    return param.len == 1 and param[0] == '2';
-}
-
-pub fn getMenuProgram() !void {
+pub fn get_menu_program() !void {
     const stdout = std.io.getStdOut().writer();
     try stdout.print("\nPlease select the program \n[1]: add todo  \n[2]: list todo \n[x]: exit progran\nenter program:", .{});
 }
@@ -26,36 +13,42 @@ pub fn append(allocator: *std.mem.Allocator, arr: [][]u8, value: []u8) ![][]u8 {
 pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
     const stdout = std.io.getStdOut().writer();
-    try stdout.print("Welcome to the ToDo program!\n", .{});
-    var allocator = std.heap.page_allocator;
-
+    std.log.info("Welcome to the ToDo program!\n", .{});
+    const allocator = std.heap.page_allocator;
+    var list = std.ArrayList([]u8).init(allocator);
+    defer list.deinit();
     while (true) {
-        try getMenuProgram();
+        try get_menu_program();
         var input: [256]u8 = undefined;
         const data_read = stdin.readUntilDelimiter(&input, '\n') catch |err| {
             std.debug.print("Error reading input: {}\n", .{err});
             return;
         };
-
-        if (conditionExitPrgram(data_read)) {
-            try stdout.print("You input 'x', exiting the program... Bye...\n", .{});
-            break;
-        }
-        if (conditionAddTodoPrgram(data_read)) {
-            var input_todo: [256]u8 = undefined;
-            try stdout.print("enter todo your:", .{});
-            _ = stdin.readUntilDelimiter(&input_todo, '\n') catch |err| {
-                std.debug.print("Error reading todo input: {}\n", .{err});
-                return;
-            };
-            try stdout.print("Todo added : {s}", .{input_todo});
-            to_do_list = try append(&allocator, to_do_list, &input_todo);
-        }
-        if (conditionGetListTodoPrgram(data_read)) {
-            try stdout.print("To-Do List:\n", .{});
-            for (to_do_list) |item| {
-                try stdout.print("Todo : {s}", .{item});
-            }
+        try stdout.print("You input = {u}\n", .{data_read[0]});
+        switch (data_read[0]) {
+            120 => {
+                std.log.info("exiting the program... Bye...\n", .{});
+                break;
+            },
+            49 => {
+                var input_todo: [256]u8 = undefined;
+                try stdout.print("Enter todo :", .{});
+                const todo_data = stdin.readUntilDelimiter(&input_todo, '\n') catch |err| {
+                    std.log.err("Error reading todo input: {}\n", .{err});
+                    return;
+                };
+                try list.append(todo_data);
+            },
+            50 => {
+                try stdout.print("\n----------------- To-Do List: -----------------\n ", .{});
+                for (list.items) |item| {
+                    try stdout.print("Todo : {s} \n", .{item});
+                }
+                try stdout.print("----------------------------------------------- ", .{});
+            },
+            else => {
+                std.log.info("You input '{s}', notfound the program... \n", .{data_read});
+            },
         }
     }
 }
