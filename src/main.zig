@@ -5,11 +5,6 @@ pub fn get_menu_program() !void {
     try stdout.print("\nPlease select the program \n[1]: add todo  \n[2]: list todo \n[x]: exit progran\nenter program:", .{});
 }
 
-pub fn append(allocator: *std.mem.Allocator, arr: [][]u8, value: []u8) ![][]u8 {
-    var newArr: [][]u8 = try allocator.realloc(arr, arr.len + 1);
-    newArr[arr.len] = value;
-    return newArr;
-}
 pub fn main() !void {
     const stdin = std.io.getStdIn().reader();
     const stdout = std.io.getStdOut().writer();
